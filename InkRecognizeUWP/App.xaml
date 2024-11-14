@@ -1,0 +1,29 @@
+﻿<!--<Application
+    x:Class="InkRecognizeUWP.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:InkRecognizeUWP"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls">
+    <Application.Resources>
+        --><!--<XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />--><!--
+        <controls:XamlControlsResources>
+            <controls:XamlControlsResources.MergedDictionaries>
+                --><!-- Other app resources here --><!--
+                <ResourceDictionary>
+                    <SolidColorBrush x:Key="WindowCaptionBackground">Transparent</SolidColorBrush>
+                    <SolidColorBrush x:Key="WindowCaptionForeground">Black</SolidColorBrush>
+                </ResourceDictionary>
+            </controls:XamlControlsResources.MergedDictionaries>
+        </controls:XamlControlsResources>
+    </Application.Resources>
+</Application>-->
+
+<Application
+    x:Class="InkRecognizeUWP.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:InkRecognizeUWP">
+    <Application.Resources>
+        <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+    </Application.Resources>
+</Application>
