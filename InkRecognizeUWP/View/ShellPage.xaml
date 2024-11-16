@@ -1,0 +1,51 @@
+﻿<Page
+    x:Class="InkRecognizeUWP.View.ShellPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:InkRecognizeUWP.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    mc:Ignorable="d"
+    muxc:BackdropMaterial.ApplyToRootOrPageBackground="True"
+    NavigationCacheMode="Enabled">
+    <Page.Resources>
+        <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
+    </Page.Resources>
+    <Grid>
+        <Border x:Name="AppTitleBar"
+                IsHitTestVisible="True"
+                VerticalAlignment="Top"
+                Background="Transparent"
+                Height="32"
+                Margin="16,4,0,0">
+            <StackPanel Orientation="Horizontal">
+                <!--<Image x:Name="AppFontIcon"
+                    HorizontalAlignment="Left" 
+                    VerticalAlignment="Center"
+                    Source="/Assets/StoreLogo.png" 
+                    Width="16" 
+                    Height="16"/>-->
+                <FontIcon Glyph="&#xEE56;" FontSize="16"/>
+                <TextBlock x:Name="AppTitle"
+                    Text="Ink Analysis Demo"
+                    VerticalAlignment="Center"
+                    Margin="12,0,0,0"
+                    Style="{StaticResource CaptionTextBlockStyle}" />
+            </StackPanel>
+        </Border>
+        <muxc:NavigationView x:Name="NavigationViewControl"          
+                             PaneDisplayMode="Top"
+                             IsBackButtonVisible="Collapsed"
+                             SelectionChanged="OnNavSelectionChanged"
+                             SelectionFollowsFocus="Enabled">
+            <muxc:NavigationView.MenuItems>
+                <muxc:NavigationViewItem Content="Draw" Tag="SmartCanvas"/>
+            </muxc:NavigationView.MenuItems>
+            <Grid>
+                <Frame x:Name="contentFrame"
+                       Margin="48,0,48,0"/>
+            </Grid>
+        </muxc:NavigationView>
+    </Grid>
+</Page>

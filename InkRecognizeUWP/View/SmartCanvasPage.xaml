@@ -1,0 +1,57 @@
+﻿<Page
+    x:Class="InkRecognizeUWP.View.SmartCanvasPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:InkRecognizeUWP.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    mc:Ignorable="d"
+    muxc:BackdropMaterial.ApplyToRootOrPageBackground="True"
+    NavigationCacheMode="Enabled">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="4*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Width="auto" Height="auto" Background="{ThemeResource LayerFillColorDefaultBrush}"
+            VerticalAlignment="Stretch" 
+            HorizontalAlignment="Stretch" 
+            Margin="0,0,0,0"
+            CornerRadius="8,8,0,0"
+            BorderThickness="1"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            Grid.Row="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <InkToolbar TargetInkCanvas="{x:Bind myInkCanvas}"
+                        VerticalAlignment="Top"
+                        Grid.Row="0"/>
+                <Canvas x:Name="recognitionCanvas"
+                    Grid.Row="1"/>
+                <InkCanvas x:Name="myInkCanvas"
+                       Grid.Row="1"/>
+            </Grid>
+        </Border>
+        <Border HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            CornerRadius="0,0,8,8"
+            Margin="0,0,0,16"
+            BorderThickness="1"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            Grid.Row="1">
+            <TextBlock VerticalAlignment="Center"
+                   Text="Recognition Results Will Be Displayed Here"
+                   Height="auto"
+                   Width="auto"
+                   x:Name="bottomLabel"
+                   Margin="8"/>
+        </Border>
+    </Grid>
+</Page>

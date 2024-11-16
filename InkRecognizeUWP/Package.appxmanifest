@@ -32,13 +32,15 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="InkRecognizeUWP.App">
       <uap:VisualElements
-        DisplayName="InkRecognizeUWP"
-        Square150x150Logo="Assets\Square150x150Logo.png"
-        Square44x44Logo="Assets\Square44x44Logo.png"
+        DisplayName="Ink Analysis Demo"
         Description="InkRecognizeUWP"
-        BackgroundColor="transparent">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
-        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        BackgroundColor="transparent" Square150x150Logo="Assets\StreamlinePenDrawSolid.png" Square44x44Logo="Assets\StreamlinePenDrawSolid.png">
+        <uap:DefaultTile>
+          <uap:ShowNameOnTiles>
+            <uap:ShowOn Tile="square150x150Logo"/>
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile>
+        <uap:SplashScreen Image="Assets\SplashScreen.png"/>
       </uap:VisualElements>
     </Application>
   </Applications>
