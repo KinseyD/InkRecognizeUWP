@@ -62,11 +62,6 @@ namespace InkRecognizeUWP.View
 
         }
 
-        private void OnNaviSelectionChanged(Microsoft.UI.Xaml.Controls.NavigationView sender, Microsoft.UI.Xaml.Controls.NavigationViewSelectionChangedEventArgs args)
-        {
-            bottomLabel.Text = args.IsSettingsSelected.ToString();
-        }
-
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
         {
             recoTimer.Stop();
@@ -80,11 +75,11 @@ namespace InkRecognizeUWP.View
             // using the SetStrokeDataKind method, which can improve both 
             // efficiency and recognition results.
             // In this example, "InkAnalysisStrokeKind.Writing" is used.
-            foreach (var stroke in args.Strokes)
-            {
-                inkAnalyzer.AddDataForStroke(stroke);
-                inkAnalyzer.SetStrokeDataKind(stroke.Id, InkAnalysisStrokeKind.Writing);
-            }
+            //foreach (var stroke in args.Strokes)
+            //{
+            //    inkAnalyzer.AddDataForStroke(stroke);
+            //    inkAnalyzer.SetStrokeDataKind(stroke.Id, InkAnalysisStrokeKind.Writing);
+            //}
             recoTimer.Start();
         }
 
@@ -93,74 +88,94 @@ namespace InkRecognizeUWP.View
             recoTimer.Stop();
             if (!inkAnalyzer.IsAnalyzing)
             {
-                InkAnalysisResult result = await inkAnalyzer.AnalyzeAsync();
-
-                // Have ink strokes on the canvas changed?
-                if (result.Status == InkAnalysisStatus.Updated)
+                var inkStrokes = myInkCanvas.InkPresenter.StrokeContainer.GetStrokes();
+                // Ensure an ink stroke is present.
+                if (inkStrokes.Count > 0)
                 {
-                    // Find all strokes that are recognized as handwriting and 
-                    // create a corresponding ink analysis InkWord node.
-                    var inkWordNodes =
-                        inkAnalyzer.AnalysisRoot.FindNodes(
-                            InkAnalysisNodeKind.InkWord);
+                    inkAnalyzer.AddDataForStrokes(inkStrokes);
 
-                    // Iterate through each InkWord node.
-                    // Display the primary recognized text (for this example, 
-                    // we ignore alternatives), and then delete the 
-                    // ink analysis data and recognized strokes.
-                    foreach (InkAnalysisInkWord node in inkWordNodes)
+                    // In this example, we try to recognizing both 
+                    // writing and drawing, so the platform default 
+                    // of "InkAnalysisStrokeKind.Auto" is used.
+                    // If you're only interested in a specific type of recognition,
+                    // such as writing or drawing, you can constrain recognition 
+                    // using the SetStrokeDataKind method as follows:
+                    // foreach (var stroke in strokesText)
+                    // {
+                    //     analyzerText.SetStrokeDataKind(
+                    //      stroke.Id, InkAnalysisStrokeKind.Writing);
+                    // }
+                    // This can improve both efficiency and recognition results.
+                    var inkAnalysisResults = await inkAnalyzer.AnalyzeAsync();
+
+                    // Have ink strokes on the canvas changed?
+                    if (inkAnalysisResults.Status == InkAnalysisStatus.Updated)
                     {
-                        string recognizedText = node.RecognizedText;
-                        // Display the recognition candidates.
-                        bottomLabel.Text = recognizedText;
-                        DrawText(node.RecognizedText, node.BoundingRect);
+                        // Find all strokes that are recognized as handwriting and 
+                        // create a corresponding ink analysis InkWord node.
+                        var inkWordNodes =
+                            inkAnalyzer.AnalysisRoot.FindNodes(
+                                InkAnalysisNodeKind.InkWord);
 
-                        foreach (var strokeId in node.GetStrokeIds())
+                        // Iterate through each InkWord node.
+                        // Draw primary recognized text on recognitionCanvas 
+                        // (for this example, we ignore alternatives), and delete 
+                        // ink analysis data and recognized strokes.
+                        foreach (InkAnalysisInkWord node in inkWordNodes)
                         {
-                            var stroke =
-                                myInkCanvas.InkPresenter.StrokeContainer.GetStrokeById(strokeId);
-                            stroke.Selected = true;
-                        }
-                        inkAnalyzer.RemoveDataForStrokes(node.GetStrokeIds());
-                    }
-                    myInkCanvas.InkPresenter.StrokeContainer.DeleteSelected();
+                            // Draw a TextBlock object on the recognitionCanvas.
+                            DrawText(node.RecognizedText, node.BoundingRect);
 
-                    // Find all strokes that are recognized as a drawing and 
-                    // create a corresponding ink analysis InkDrawing node.
-                    var inkDrawingNodes =
-                        inkAnalyzer.AnalysisRoot.FindNodes(
-                            InkAnalysisNodeKind.InkDrawing);
-                    // Iterate through each InkDrawing node.
-                    // Draw recognized shapes on recognitionCanvas and
-                    // delete ink analysis data and recognized strokes.
-                    foreach (InkAnalysisInkDrawing node in inkDrawingNodes)
-                    {
-                        if (node.DrawingKind == InkAnalysisDrawingKind.Drawing)
-                        {
-                            // Catch and process unsupported shapes (lines and so on) here.
-                        }
-                        // Process generalized shapes here (ellipses and polygons).
-                        else
-                        {
-                            // Draw an Ellipse object on the recognitionCanvas (circle is a specialized ellipse).
-                            if (node.DrawingKind == InkAnalysisDrawingKind.Circle || node.DrawingKind == InkAnalysisDrawingKind.Ellipse)
-                            {
-                                DrawEllipse(node);
-                            }
-                            // Draw a Polygon object on the recognitionCanvas.
-                            else
-                            {
-                                DrawPolygon(node);
-                            }
+                            // Display recognition result
+                            bottomLabel.Text = node.RecognizedText;
+
                             foreach (var strokeId in node.GetStrokeIds())
                             {
-                                var stroke = myInkCanvas.InkPresenter.StrokeContainer.GetStrokeById(strokeId);
+                                var stroke =
+                                    myInkCanvas.InkPresenter.StrokeContainer.GetStrokeById(strokeId);
                                 stroke.Selected = true;
                             }
+                            inkAnalyzer.RemoveDataForStrokes(node.GetStrokeIds());
                         }
-                        inkAnalyzer.RemoveDataForStrokes(node.GetStrokeIds());
+                        myInkCanvas.InkPresenter.StrokeContainer.DeleteSelected();
+
+                        // Find all strokes that are recognized as a drawing and 
+                        // create a corresponding ink analysis InkDrawing node.
+                        var inkDrawingNodes =
+                            inkAnalyzer.AnalysisRoot.FindNodes(
+                                InkAnalysisNodeKind.InkDrawing);
+                        // Iterate through each InkDrawing node.
+                        // Draw recognized shapes on recognitionCanvas and
+                        // delete ink analysis data and recognized strokes.
+                        foreach (InkAnalysisInkDrawing node in inkDrawingNodes)
+                        {
+                            if (node.DrawingKind == InkAnalysisDrawingKind.Drawing)
+                            {
+                                // Catch and process unsupported shapes (lines and so on) here.
+                            }
+                            // Process generalized shapes here (ellipses and polygons).
+                            else
+                            {
+                                // Draw an Ellipse object on the recognitionCanvas (circle is a specialized ellipse).
+                                if (node.DrawingKind == InkAnalysisDrawingKind.Circle || node.DrawingKind == InkAnalysisDrawingKind.Ellipse)
+                                {
+                                    DrawEllipse(node);
+                                }
+                                // Draw a Polygon object on the recognitionCanvas.
+                                else
+                                {
+                                    DrawPolygon(node);
+                                }
+                                foreach (var strokeId in node.GetStrokeIds())
+                                {
+                                    var stroke = myInkCanvas.InkPresenter.StrokeContainer.GetStrokeById(strokeId);
+                                    stroke.Selected = true;
+                                }
+                            }
+                            inkAnalyzer.RemoveDataForStrokes(node.GetStrokeIds());
+                        }
+                        myInkCanvas.InkPresenter.StrokeContainer.DeleteSelected();
                     }
-                    myInkCanvas.InkPresenter.StrokeContainer.DeleteSelected();
                 }
             }
             else
@@ -170,6 +185,8 @@ namespace InkRecognizeUWP.View
             }
         }
 
+
+        #region Draw Shapes and Text
         /// <summary>
         /// Draw ink recognition text string on the recognitionCanvas.
         /// </summary>
@@ -221,5 +238,6 @@ namespace InkRecognizeUWP.View
             polygon.StrokeThickness = 2;
             recognitionCanvas.Children.Add(polygon);
         }
+        #endregion
     }
 }

@@ -47,11 +47,13 @@
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             Grid.Row="1">
             <TextBlock VerticalAlignment="Center"
-                   Text="Recognition Results Will Be Displayed Here"
-                   Height="auto"
-                   Width="auto"
-                   x:Name="bottomLabel"
-                   Margin="8"/>
+                       HorizontalAlignment="Center"
+                       TextWrapping="WrapWholeWords"
+                       Text="Recognition Results Will Be Displayed Here"
+                       Height="auto"
+                       Width="auto"
+                       x:Name="bottomLabel"
+                       Margin="8"/>
         </Border>
     </Grid>
 </Page>
