@@ -30,14 +30,17 @@ namespace InkRecognizeUWP.View
         // Global variable
         DispatcherTimer recoTimer;
         InkAnalyzer inkAnalyzer;
+        InkRecognizerContainer inkRecognizerContainer;
 
         public SmartCanvasPage()
         {
             this.InitializeComponent();
             InkCanvasInit();
             RecognitionTimerInit();
+            ComboButtonInit();
         }
 
+        #region Initialize
         private void RecognitionTimerInit()
         {
             recoTimer = new DispatcherTimer();
@@ -47,7 +50,9 @@ namespace InkRecognizeUWP.View
 
         private void InkCanvasInit()
         {
-            myInkCanvas.InkPresenter.InputDeviceTypes = CoreInputDeviceTypes.Mouse | CoreInputDeviceTypes.Touch | CoreInputDeviceTypes.Pen;
+            myInkCanvas.InkPresenter.InputDeviceTypes = CoreInputDeviceTypes.Mouse | 
+                                                        CoreInputDeviceTypes.Touch | 
+                                                        CoreInputDeviceTypes.Pen;
             InkDrawingAttributes drawingAttributes = new InkDrawingAttributes
             {
                 Color = Colors.White,
@@ -62,9 +67,30 @@ namespace InkRecognizeUWP.View
 
         }
 
+        private void ComboButtonInit()
+        {
+            inkRecognizerContainer = new InkRecognizerContainer();
+            IReadOnlyList<InkRecognizer> installedRecognizers = inkRecognizerContainer.GetRecognizers();
+            // inkRecognizerContainer is null if a recognition engine is not available.
+            if (!(inkRecognizerContainer == null))
+            {
+                this.installedRecognizers.ItemsSource = installedRecognizers;
+                this.installedRecognizers.SelectedIndex = 0;
+                inkRecognizerContainer.SetDefaultRecognizer(installedRecognizers[0]);
+            }
+        }
+        #endregion
+
+        #region Events
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
         {
             recoTimer.Stop();
+        }
+
+        private void OnRecognizersSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            inkRecognizerContainer.SetDefaultRecognizer(
+                inkRecognizerContainer.GetRecognizers()[this.installedRecognizers.SelectedIndex]);
         }
 
         private void OnStrokesCollected(InkPresenter presenter, InkStrokesCollectedEventArgs args)
@@ -82,8 +108,10 @@ namespace InkRecognizeUWP.View
             //}
             recoTimer.Start();
         }
+        #endregion
 
-        private async void RecoTimer_TickAsync(object sender, object e)
+        #region Analyze
+        private async void RecoTimer_TickAsync_Old(object sender, object e)
         {
             recoTimer.Stop();
             if (!inkAnalyzer.IsAnalyzing)
@@ -185,6 +213,106 @@ namespace InkRecognizeUWP.View
             }
         }
 
+        private async void RecoTimer_TickAsync(object sender, object e)
+        {
+            recoTimer.Stop();
+            if (!inkAnalyzer.IsAnalyzing)
+            {
+                var currentStrokes = myInkCanvas.InkPresenter.StrokeContainer.GetStrokes();
+                // Ensure an ink stroke is present.
+                if (currentStrokes.Count <= 0)
+                {
+                    return;
+                }
+
+                if (inkRecognizerContainer == null)
+                {
+                    ContentDialog contentDialog = new ContentDialog
+                    {
+                        Title = "No recognition engine found",
+                        CloseButtonText = "Cancel",
+                        Content = new TextBlock()
+                        {
+                            Text = "You must install handwriting recognition engine.",
+                            Margin = new Thickness(0, 4, 4, 4)
+                        },
+                    };
+                    await contentDialog.ShowAsync();
+
+                    return;
+                }
+
+                // Find all strokes that are recognized as a drawing and 
+                // create a corresponding ink analysis InkDrawing node.
+                inkAnalyzer.AddDataForStrokes(currentStrokes);
+                var inkAnalysisResults = await inkAnalyzer.AnalyzeAsync();
+                var inkDrawingNodes =
+                    inkAnalyzer.AnalysisRoot.FindNodes(
+                        InkAnalysisNodeKind.InkDrawing);
+                // Iterate through each InkDrawing node.
+                // Draw recognized shapes on recognitionCanvas and
+                // delete ink analysis data and recognized strokes.
+                foreach (InkAnalysisInkDrawing node in inkDrawingNodes)
+                {
+                    if (node.DrawingKind == InkAnalysisDrawingKind.Drawing)
+                    {
+                        // Catch and process unsupported shapes (lines and so on) here.
+                    }
+                    // Process generalized shapes here (ellipses and polygons).
+                    else
+                    {
+                        // Draw an Ellipse object on the recognitionCanvas (circle is a specialized ellipse).
+                        if (node.DrawingKind == InkAnalysisDrawingKind.Circle || node.DrawingKind == InkAnalysisDrawingKind.Ellipse)
+                        {
+                            DrawEllipse(node);
+                        }
+                        // Draw a Polygon object on the recognitionCanvas.
+                        else
+                        {
+                            DrawPolygon(node);
+                        }
+                        foreach (var strokeId in node.GetStrokeIds())
+                        {
+                            var stroke = myInkCanvas.InkPresenter.StrokeContainer.GetStrokeById(strokeId);
+                            stroke.Selected = true;
+                        }
+                    }
+                    inkAnalyzer.RemoveDataForStrokes(node.GetStrokeIds());
+                }
+                myInkCanvas.InkPresenter.StrokeContainer.DeleteSelected();
+
+                if (myInkCanvas.InkPresenter.StrokeContainer.GetStrokes().Count <= 0)
+                {
+                    return;
+                }
+
+                // Recognize and draw text
+                var recognitionResults = await inkRecognizerContainer.RecognizeAsync(
+                    myInkCanvas.InkPresenter.StrokeContainer,
+                    InkRecognitionTarget.All);
+
+                if (recognitionResults.Count <= 0)
+                {
+                    return;
+                }
+                var candidate = recognitionResults.First().GetTextCandidates();
+                bottomLabel.Text = candidate.First();
+                DrawText(candidate.First(), recognitionResults.First().BoundingRect);
+
+                // Delete all strokes
+                foreach (var stroke in recognitionResults.First().GetStrokes())
+                {
+                    stroke.Selected = true;
+                }
+                myInkCanvas.InkPresenter.StrokeContainer.DeleteSelected();
+            }
+            else
+            {
+                // Ink analyzer is busy. Wait a while and try again.
+                recoTimer.Start();
+            }
+        }
+        #endregion
 
         #region Draw Shapes and Text
         /// <summary>

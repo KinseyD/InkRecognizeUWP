@@ -29,13 +29,33 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
                 <InkToolbar TargetInkCanvas="{x:Bind myInkCanvas}"
                         VerticalAlignment="Top"
-                        Grid.Row="0"/>
+                        Grid.Row="0"
+                        Grid.Column="0"/>
+                <ComboBox x:Name="installedRecognizers"
+                          Grid.Column="1"
+                          HorizontalAlignment="Right"
+                          Margin="4"
+                          SelectionChanged="OnRecognizersSelectionChanged">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Name}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
                 <Canvas x:Name="recognitionCanvas"
-                    Grid.Row="1"/>
+                        Grid.Row="1"
+                        Grid.ColumnSpan="2"/>
                 <InkCanvas x:Name="myInkCanvas"
-                       Grid.Row="1"/>
+                           Grid.Row="1"
+                           Grid.ColumnSpan="2"/>
             </Grid>
         </Border>
         <Border HorizontalAlignment="Stretch"
